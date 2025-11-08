@@ -1,0 +1,31 @@
+name: Deploy Matching Board Theme (2000km.net)
+
+on:
+  push:
+    branches:
+      - main           # mainブランチにpush時デプロイ
+    paths:
+      - 'wp-content/themes/matching-board-v2/**'  # テーマ配下のみ対象
+  workflow_dispatch:   # 手動実行も可能
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p 8022 -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy theme via rsync
+        run: |
+          rsync -avzr --delete \
+            -e "ssh -p 8022 -i ~/.ssh/id_ed25519" \
+            ./wp-content/themes/matching-board-v2/ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/public_html/2000km.net/wp-content/themes/matching-board-v2/
