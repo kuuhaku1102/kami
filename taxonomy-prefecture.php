@@ -19,73 +19,15 @@ $prefecture_name = $term->name;
 
   <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:20px; margin-bottom:40px;">
     <?php
-      // ランダムな表示件数（6〜10件）
       $random_count = rand(6, 10);
-      
-      $args = [
-        'post_type' => 'kamimachi_girl',
-        'posts_per_page' => $random_count,
-        'orderby' => 'rand',
-        'tax_query' => [
-          [
-            'taxonomy' => 'prefecture',
-            'field' => 'slug',
-            'terms' => $term->slug
-          ]
-        ]
-      ];
+      $import_girls = get_kami_import_data($random_count, $prefecture_name, true);
 
-      $query = new WP_Query($args);
-
-      $has_posts = false;
-      if ($query->have_posts()) :
-        $has_posts = true;
-        $colors = ['#5DADE2', '#F8B4D9', '#F8C471', '#82E0AA', '#BB8FCE', '#F1948A'];
-        $color_index = 0;
-
-        while ($query->have_posts()) : $query->the_post();
-          $age = get_post_meta(get_the_ID(), '_girl_age', true);
-          $figure = get_post_meta(get_the_ID(), '_girl_figure', true);
-          $character = get_post_meta(get_the_ID(), '_girl_character', true);
-          $comment = get_post_meta(get_the_ID(), '_girl_comment', true);
-          $border_color = $colors[$color_index % count($colors)];
-          $color_index++;
-    ?>
-      <div style="background:#fff; border:3px solid <?php echo $border_color; ?>; border-radius:10px; overflow:hidden; box-shadow:0 3px 8px rgba(0,0,0,0.1);">
-        <a href="<?php the_permalink(); ?>" style="text-decoration:none; color:#333;">
-          <?php if (has_post_thumbnail()) : ?>
-            <?php the_post_thumbnail('medium', ['style' => 'width:100%; height:250px; object-fit:cover;']); ?>
-          <?php else : ?>
-            <div style="width:100%; height:250px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#999;">
-              No Image
-            </div>
-          <?php endif; ?>
-          <div style="padding:15px;">
-            <h3 style="margin:0 0 5px; font-size:18px;">
-              <?php the_title(); ?><?php if ($age) echo '（' . esc_html($age) . '歳）'; ?>
-            </h3>
-            <?php if ($figure || $character) : ?>
-              <p style="font-size:14px; color:#666; margin:5px 0;">
-                <?php echo esc_html($figure . '・' . $character); ?>
-              </p>
-            <?php endif; ?>
-            <?php if ($comment) : ?>
-              <p style="font-size:13px; margin-top:8px; line-height:1.5;">
-                <?php echo esc_html(mb_substr($comment, 0, 50)) . (mb_strlen($comment) > 50 ? '...' : ''); ?>
-              </p>
-            <?php endif; ?>
-          </div>
-        </a>
-      </div>
-    <?php
-        endwhile;
-      endif;
-      wp_reset_postdata();
-
-      if (!$has_posts) :
-        $import_girls = get_kami_import_data(50, $prefecture_name);
-        if (!empty($import_girls)) :
-          foreach ($import_girls as $g) :
+      if (!empty($import_girls)) :
+        foreach ($import_girls as $g) :
+          $meta_parts = array_filter([
+            !empty($g->figure) ? $g->figure : null,
+            !empty($g->character) ? $g->character : null,
+          ]);
     ?>
       <div style="background:#fff; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); overflow:hidden;">
         <a href="<?php echo esc_url($g->url); ?>" target="_blank" style="text-decoration:none; color:#333;">
@@ -100,13 +42,7 @@ $prefecture_name = $term->name;
             <h3 style="margin:0 0 5px; font-size:18px;">
               <?php echo esc_html($g->name); ?><?php if (!empty($g->age)) echo '（' . esc_html($g->age) . '）'; ?>
             </h3>
-            <?php
-              $meta_parts = array_filter([
-                !empty($g->figure) ? $g->figure : null,
-                !empty($g->character) ? $g->character : null,
-              ]);
-              if (!empty($meta_parts)) :
-            ?>
+            <?php if (!empty($meta_parts)) : ?>
               <p style="font-size:14px; color:#666;">
                 <?php echo esc_html(implode('・', $meta_parts)); ?>
               </p>
@@ -120,7 +56,62 @@ $prefecture_name = $term->name;
         </a>
       </div>
     <?php
-          endforeach;
+        endforeach;
+      else :
+        $args = [
+          'post_type' => 'kamimachi_girl',
+          'posts_per_page' => $random_count,
+          'orderby' => 'rand',
+          'tax_query' => [
+            [
+              'taxonomy' => 'prefecture',
+              'field' => 'slug',
+              'terms' => $term->slug
+            ]
+          ]
+        ];
+
+        $query = new WP_Query($args);
+
+        if ($query->have_posts()) :
+          while ($query->have_posts()) : $query->the_post();
+            $age = get_post_meta(get_the_ID(), '_girl_age', true);
+            $figure = get_post_meta(get_the_ID(), '_girl_figure', true);
+            $character = get_post_meta(get_the_ID(), '_girl_character', true);
+            $comment = get_post_meta(get_the_ID(), '_girl_comment', true);
+            $meta_parts = array_filter([
+              $figure ? $figure : null,
+              $character ? $character : null,
+            ]);
+    ?>
+      <div style="background:#fff; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); overflow:hidden;">
+        <a href="<?php the_permalink(); ?>" style="text-decoration:none; color:#333;">
+          <?php if (has_post_thumbnail()) : ?>
+            <?php the_post_thumbnail('medium', ['style' => 'width:100%; height:250px; object-fit:cover;']); ?>
+          <?php else : ?>
+            <div style="width:100%; height:250px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#999;">
+              No Image
+            </div>
+          <?php endif; ?>
+          <div style="padding:15px;">
+            <h3 style="margin:0 0 5px; font-size:18px;">
+              <?php the_title(); ?><?php if ($age) echo '（' . esc_html($age) . '歳）'; ?>
+            </h3>
+            <?php if (!empty($meta_parts)) : ?>
+              <p style="font-size:14px; color:#666;">
+                <?php echo esc_html(implode('・', $meta_parts)); ?>
+              </p>
+            <?php endif; ?>
+            <?php if ($comment) : ?>
+              <p style="font-size:13px; margin-top:8px; line-height:1.5;">
+                <?php echo esc_html(mb_substr($comment, 0, 50)) . (mb_strlen($comment) > 50 ? '...' : ''); ?>
+              </p>
+            <?php endif; ?>
+          </div>
+        </a>
+      </div>
+    <?php
+          endwhile;
         else :
     ?>
       <p style="grid-column:1/-1; text-align:center; color:#999;">
@@ -128,6 +119,7 @@ $prefecture_name = $term->name;
       </p>
     <?php
         endif;
+        wp_reset_postdata();
       endif;
     ?>
   </div>
