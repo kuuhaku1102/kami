@@ -1,5 +1,5 @@
 <?php get_header(); ?>
-
+<?php error_log('✅ index.php が実行されました'); ?>
 <main style="max-width:1100px; margin:40px auto; padding:20px;">
   <h2 style="margin-bottom:20px;">登録一覧</h2>
 
