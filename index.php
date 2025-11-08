@@ -2,6 +2,7 @@
 
 <main style="max-width:900px; margin:40px auto; background:#fff; padding:40px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.05);">
   <h2 style="margin-bottom:30px;">新着プロフィール</h2>
+  テスト
   <div class="profile-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:20px;">
     <?php
     $query = new WP_Query([
