@@ -15,4 +15,14 @@ add_theme_support('post-thumbnails');
 add_action('wp_enqueue_scripts', function() {
   wp_enqueue_style('matching-board-style', get_stylesheet_uri());
 });
+
+// functions.php に追加
+function get_kami_import_data($limit = 20) {
+  global $wpdb;
+  $table = '240710kami_import'; // phpMyAdminでのテーブル名
+
+  // データ取得
+  $results = $wpdb->get_results("SELECT * FROM {$table} WHERE post_status='publish' LIMIT {$limit}");
+  return $results;
+}
 ?>
