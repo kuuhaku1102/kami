@@ -191,7 +191,7 @@ function save_girl_meta($post_id) {
 add_action('save_post_kamimachi_girl', 'save_girl_meta');
 
 // 既存のDB接続関数（互換性維持）
-function get_kami_import_data($limit = 50) {
+function get_kami_import_data($limit = 50, $prefecture = null) {
   $log_path = WP_CONTENT_DIR . '/debug.log';
   file_put_contents($log_path, "=== DB接続テスト開始 ===\n", FILE_APPEND);
 
@@ -204,12 +204,40 @@ function get_kami_import_data($limit = 50) {
   file_put_contents($log_path, "✅ DB接続成功: " . DB_NAME . "\n", FILE_APPEND);
   $conn->set_charset('utf8mb4');
 
+  $limit = intval($limit);
+  $prefecture = $prefecture ? trim($prefecture) : null;
+
   // ✅ テーブル構造に完全一致
-  $sql = "SELECT name, age, figure, `character`, `comment`, samune, url
-          FROM `jqabp_6e7f3y4v`.`wp_kami_import`
-          ORDER BY name DESC
-          LIMIT {$limit}";
-  $result = $conn->query($sql);
+  $base_sql = "SELECT name, age, figure, `character`, `comment`, samune, url, prefecture
+          FROM `jqabp_6e7f3y4v`.`wp_kami_import`";
+
+  $result = false;
+
+  if ($prefecture) {
+    $sql = $base_sql . " WHERE prefecture = ? ORDER BY name DESC LIMIT ?";
+    if ($stmt = $conn->prepare($sql)) {
+      $stmt->bind_param('si', $prefecture, $limit);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $stmt->close();
+    } else {
+      file_put_contents($log_path, "⚠️ プレースホルダー付きSQL準備失敗: {$conn->error}\n", FILE_APPEND);
+    }
+  }
+
+  if (!$result) {
+    $sql = $base_sql . " ORDER BY name DESC LIMIT ?";
+    if ($stmt = $conn->prepare($sql)) {
+      $stmt->bind_param('i', $limit);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $stmt->close();
+    } else {
+      file_put_contents($log_path, "⚠️ SQL準備失敗: {$conn->error}\n", FILE_APPEND);
+      $fallback_sql = $base_sql . " ORDER BY name DESC LIMIT {$limit}";
+      $result = $conn->query($fallback_sql);
+    }
+  }
 
   $data = [];
   if ($result && $result->num_rows > 0) {
