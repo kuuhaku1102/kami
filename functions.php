@@ -191,54 +191,36 @@ function save_girl_meta($post_id) {
 add_action('save_post_kamimachi_girl', 'save_girl_meta');
 
 // 既存のDB接続関数（互換性維持）
-function get_kami_import_data($limit = 50, $prefecture = null, $random = false) {
+function get_kami_import_data($limit = 50, $random = false) {
   $log_path = WP_CONTENT_DIR . '/debug.log';
   file_put_contents($log_path, "=== DB接続テスト開始 ===\n", FILE_APPEND);
 
   $conn = @new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
   if ($conn->connect_errno) {
-    file_put_contents($log_path, "❌ DB接続失敗: {$conn->connect_error}\n", FILE_APPEND);
+    file_put_contents($log_path, ":x: DB接続失敗: {$conn->connect_error}\n", FILE_APPEND);
     return [];
   }
 
-  file_put_contents($log_path, "✅ DB接続成功: " . DB_NAME . "\n", FILE_APPEND);
+  file_put_contents($log_path, ":white_check_mark: DB接続成功: " . DB_NAME . "\n", FILE_APPEND);
   $conn->set_charset('utf8mb4');
 
   $limit = intval($limit);
-  $prefecture = $prefecture ? trim($prefecture) : null;
-
-  // ✅ テーブル構造に完全一致
-  $base_sql = "SELECT name, age, figure, `character`, `comment`, samune, url
-          FROM `jqabp_6e7f3y4v`.`wp_kami_import`";
-
   $order_clause = $random ? ' ORDER BY RAND()' : ' ORDER BY name DESC';
 
-  $result = false;
+  // :white_check_mark: prefecture を削除した構文
+  $sql = "SELECT name, age, figure, `character`, `comment`, samune, url
+          FROM `jqabp_6e7f3y4v`.`wp_kami_import`" . $order_clause . " LIMIT ?";
 
-  if ($prefecture) {
-    $sql = $base_sql . " WHERE prefecture = ?" . $order_clause . " LIMIT ?";
-    if ($stmt = $conn->prepare($sql)) {
-      $stmt->bind_param('si', $prefecture, $limit);
-      $stmt->execute();
-      $result = $stmt->get_result();
-      $stmt->close();
-    } else {
-      file_put_contents($log_path, "⚠️ プレースホルダー付きSQL準備失敗: {$conn->error}\n", FILE_APPEND);
-    }
-  }
-
-  if (!$result) {
-    $sql = $base_sql . $order_clause . " LIMIT ?";
-    if ($stmt = $conn->prepare($sql)) {
-      $stmt->bind_param('i', $limit);
-      $stmt->execute();
-      $result = $stmt->get_result();
-      $stmt->close();
-    } else {
-      file_put_contents($log_path, "⚠️ SQL準備失敗: {$conn->error}\n", FILE_APPEND);
-      $fallback_sql = $base_sql . $order_clause . " LIMIT {$limit}";
-      $result = $conn->query($fallback_sql);
-    }
+  if ($stmt = $conn->prepare($sql)) {
+    $stmt->bind_param('i', $limit);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+  } else {
+    file_put_contents($log_path, ":warning: SQL準備失敗: {$conn->error}\n", FILE_APPEND);
+    $fallback_sql = "SELECT name, age, figure, `character`, `comment`, samune, url
+                     FROM `jqabp_6e7f3y4v`.`wp_kami_import`" . $order_clause . " LIMIT {$limit}";
+    $result = $conn->query($fallback_sql);
   }
 
   $data = [];
@@ -246,9 +228,9 @@ function get_kami_import_data($limit = 50, $prefecture = null, $random = false) 
     while ($row = $result->fetch_object()) {
       $data[] = $row;
     }
-    file_put_contents($log_path, "✅ 取得件数: " . count($data) . "\n", FILE_APPEND);
+    file_put_contents($log_path, ":white_check_mark: 取得件数: " . count($data) . "\n", FILE_APPEND);
   } else {
-    file_put_contents($log_path, "⚠️ SQLエラー: {$conn->error}\n", FILE_APPEND);
+    file_put_contents($log_path, ":warning: SQLエラー: {$conn->error}\n", FILE_APPEND);
   }
 
   $conn->close();
