@@ -208,7 +208,7 @@ function get_kami_import_data($limit = 50, $prefecture = null, $random = false) 
   $prefecture = $prefecture ? trim($prefecture) : null;
 
   // ✅ テーブル構造に完全一致
-  $base_sql = "SELECT name, age, figure, `character`, `comment`, samune, url, prefecture
+  $base_sql = "SELECT name, age, figure, `character`, `comment`, samune, url
           FROM `jqabp_6e7f3y4v`.`wp_kami_import`";
 
   $order_clause = $random ? ' ORDER BY RAND()' : ' ORDER BY name DESC';
