@@ -71,7 +71,7 @@ get_header();
             <li>よくある質問（FAQ）</li>
           </ul>
         </div>
-        <a href="#" style="display:inline-block; background:#667eea; color:#fff; padding:10px 20px; border-radius:5px; text-decoration:none; font-size:14px; transition:all 0.3s;">
+        <a href="<?php echo home_url('/how-to-use'); ?>" style="display:inline-block; background:#667eea; color:#fff; padding:10px 20px; border-radius:5px; text-decoration:none; font-size:14px; transition:all 0.3s;">
           詳しく見る
         </a>
       </div>
@@ -92,7 +92,7 @@ get_header();
             <li>個人情報の不正取得</li>
           </ul>
         </div>
-        <a href="#" style="display:inline-block; background:#f39c12; color:#fff; padding:10px 20px; border-radius:5px; text-decoration:none; font-size:14px; transition:all 0.3s;">
+        <a href="<?php echo home_url('/guidelines'); ?>" style="display:inline-block; background:#f39c12; color:#fff; padding:10px 20px; border-radius:5px; text-decoration:none; font-size:14px; transition:all 0.3s;">
           詳しく見る
         </a>
       </div>
