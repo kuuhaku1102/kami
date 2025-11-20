@@ -155,6 +155,105 @@ $prefecture_name = $term->name;
     </p>
   </section>
 
+  <!-- 待ち合わせポイント -->
+  <section style="background:#fff; padding:30px; border-radius:10px; box-shadow:0 3px 10px rgba(0,0,0,0.1); margin-bottom:40px;">
+    <?php
+      // 都道府県別の待ち合わせポイント
+      $meeting_points = [
+        '北海道' => [
+          ['name' => '札幌駅', 'description' => 'JR札幌駅は北海道最大のターミナル駅。駅ビル内にカフェやレストランが多数あり、待ち合わせに最適です。'],
+          ['name' => 'すすきの駅', 'description' => '繁華街の中心地。24時間営業の飲食店も多く、夜の待ち合わせにも便利です。'],
+          ['name' => '大通公園', 'description' => '札幌の中心部にある広大な公園。天気の良い日の待ち合わせにおすすめです。']
+        ],
+        '東京都' => [
+          ['name' => '新宿駅南口', 'description' => '新宿駅南口のルミネ前は定番の待ち合わせスポット。周辺にカフェも多数あります。'],
+          ['name' => '渋谷ハチ公前', 'description' => '渋谷の定番待ち合わせスポット。人は多いですが、目印としてわかりやすい場所です。'],
+          ['name' => '池袋駅東口', 'description' => '池袋駅東口のサンシャイン通り入口付近。カフェやファミレスも充実しています。'],
+          ['name' => '東京駅丸の内口', 'description' => '東京駅丸の内口の丸ビル前。落ち着いた雰囲気で待ち合わせができます。']
+        ],
+        '大阪府' => [
+          ['name' => '梅田駅', 'description' => '大阪駅・梅田駅周辺のグランフロント大阪。おしゃれなカフェが多く、待ち合わせに最適です。'],
+          ['name' => 'なんば駅', 'description' => 'なんばパークス前やマルイ前が待ち合わせの定番スポット。飲食店も豊富です。'],
+          ['name' => '天王寺駅', 'description' => '天王寺駅のあべのハルカス前。ランドマークとしてわかりやすい待ち合わせ場所です。']
+        ],
+        '神奈川県' => [
+          ['name' => '横浜駅西口', 'description' => '横浜駅西口のジョイナス前。人通りが多く、カフェも充実しています。'],
+          ['name' => 'みなとみらい駅', 'description' => 'みなとみらい駅のクイーンズスクエア前。デートスポットも近く、おしゃれな雰囲気です。'],
+          ['name' => '川崎駅', 'description' => '川崎駅のラゾーナ川崎前。ショッピングモール内にカフェが多数あります。']
+        ],
+        '愛知県' => [
+          ['name' => '名古屋駅', 'description' => '名古屋駅の金の時計前。名古屋の定番待ち合わせスポットです。'],
+          ['name' => '栄駅', 'description' => '栄駅のオアシス21前。ランドマークとしてわかりやすく、カフェも豊富です。'],
+          ['name' => '金山駅', 'description' => '金山駅のアスナル金山。飲食店が多く、待ち合わせ後の食事にも便利です。']
+        ],
+        '福岡県' => [
+          ['name' => '天神駅', 'description' => '天神駅の福岡パルコ前。福岡の中心地で、カフェやレストランが充実しています。'],
+          ['name' => '博多駅', 'description' => '博多駅の博多口。駅ビル内にカフェが多数あり、待ち合わせに便利です。'],
+          ['name' => '中洲川端駅', 'description' => '中洲川端駅のキャナルシティ博多前。ショッピングモール内での待ち合わせも可能です。']
+        ],
+        '埼玉県' => [
+          ['name' => '大宮駅', 'description' => '大宮駅の西口ルミネ前。埼玉県内最大のターミナル駅で、カフェも充実しています。'],
+          ['name' => '浦和駅', 'description' => '浦和駅の伊勢丹前。落ち着いた雰囲気で待ち合わせができます。'],
+          ['name' => '川口駅', 'description' => '川口駅のキュポ・ラ前。東京へのアクセスも良好です。']
+        ],
+        '千葉県' => [
+          ['name' => '千葉駅', 'description' => '千葉駅のペリエ千葉前。駅ビル内にカフェが多数あります。'],
+          ['name' => '船橋駅', 'description' => '船橋駅の東武百貨店前。繁華街の中心で、飲食店も豊富です。'],
+          ['name' => '柏駅', 'description' => '柏駅の高島屋前。柏の中心地で、待ち合わせに便利です。']
+        ],
+        '兵庫県' => [
+          ['name' => '三宮駅', 'description' => '三宮駅のそごう前。神戸の中心地で、おしゃれなカフェが多数あります。'],
+          ['name' => '元町駅', 'description' => '元町駅の南京町入口。中華街が近く、食事を楽しめます。'],
+          ['name' => '神戸ハーバーランド', 'description' => 'umie前。海沿いの開放的な雰囲気で待ち合わせができます。']
+        ],
+        '京都府' => [
+          ['name' => '四条河原町', 'description' => '四条河原町の高島屋前。京都の中心地で、カフェやレストランが充実しています。'],
+          ['name' => '京都駅', 'description' => '京都駅の京都タワー前。ランドマークとしてわかりやすい待ち合わせ場所です。'],
+          ['name' => '烏丸御池駅', 'description' => '烏丸御池駅のコトチカ前。落ち着いた雰囲気のエリアです。']
+        ],
+        '栃木県' => [
+          ['name' => '宇都宮駅', 'description' => '宇都宮駅の西口ペデストリアンデッキ。栃木県の中心駅で、カフェも充実しています。'],
+          ['name' => 'オリオン通り', 'description' => '宇都宮の繁華街。餃子店も多く、食事を楽しみながらの待ち合わせに最適です。'],
+          ['name' => 'ベルモール', 'description' => '宇都宮市内の大型ショッピングモール。駐車場も広く、車での待ち合わせに便利です。']
+        ],
+        '茨城県' => [
+          ['name' => '水戸駅', 'description' => '水戸駅の北口ペデストリアンデッキ。茨城県の中心駅で、待ち合わせに便利です。'],
+          ['name' => 'つくば駅', 'description' => 'つくば駅のつくばセンター広場。研究学園都市の中心地です。'],
+          ['name' => 'イオンモール水戸内原', 'description' => '水戸市内の大型ショッピングモール。駐車場完備で車での待ち合わせに最適です。']
+        ],
+        '群馬県' => [
+          ['name' => '高崎駅', 'description' => '高崎駅の東口ペデストリアンデッキ。群馬県の中心駅で、カフェも充実しています。'],
+          ['name' => '前橋駅', 'description' => '前橋駅の北口。県庁所在地の中心駅です。'],
+          ['name' => 'けやきウォーク前橋', 'description' => '前橋市内の大型ショッピングモール。駐車場も広く、待ち合わせに便利です。']
+        ]
+      ];
+
+      // デフォルトの待ち合わせポイント
+      $default_points = [
+        ['name' => $prefecture_name . '主要駅', 'description' => $prefecture_name . 'の主要駅周辺は、カフェやファミレスが多く、待ち合わせに最適です。人通りも多く、安全に待ち合わせができます。'],
+        ['name' => '駅ビル・ショッピングモール', 'description' => '駅ビルやショッピングモール内のカフェは、天候に左右されず、快適に待ち合わせができます。'],
+        ['name' => 'ファミリーレストラン', 'description' => '全国チェーンのファミリーレストランは、わかりやすく、長時間の滞在も可能です。']
+      ];
+
+      $points = isset($meeting_points[$prefecture_name]) ? $meeting_points[$prefecture_name] : $default_points;
+    ?>
+    <h2 style="font-size:22px; margin-bottom:20px; color:#333; border-left:4px solid #667eea; padding-left:15px;">
+      <?php echo esc_html($prefecture_name); ?>のおすすめ待ち合わせポイント
+    </h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+      <?php foreach ($points as $point) : ?>
+        <div style="background:#f9f9f9; padding:20px; border-radius:8px; border-left:3px solid #667eea;">
+          <h4 style="margin:0 0 10px; font-size:18px; color:#333;">
+            📍 <?php echo esc_html($point['name']); ?>
+          </h4>
+          <p style="margin:0; font-size:14px; line-height:1.6; color:#555;">
+            <?php echo esc_html($point['description']); ?>
+          </p>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </section>
+
   <!-- 安全な利用のための注意事項 -->
   <section style="background:#fff3cd; padding:30px; border-radius:10px; border-left:5px solid #ffc107;">
     <h3 style="margin:0 0 15px; font-size:20px; color:#856404;">
