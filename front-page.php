@@ -16,7 +16,11 @@ get_header();
       <a href="#prefecture-list" style="display:inline-block; background:#fff; color:#667eea; padding:12px 30px; border-radius:30px; text-decoration:none; font-weight:bold; transition:all 0.3s;">
         都道府県から探す
       </a>
-      <a href="#how-to-use" style="display:inline-block; background:rgba(255,255,255,0.2); color:#fff; padding:12px 30px; border-radius:30px; text-decoration:none; font-weight:bold; border:2px solid #fff; transition:all 0.3s;">
+      <?php 
+        $how_to_use_page = get_page_by_path('how-to-use');
+        $how_to_use_url = $how_to_use_page ? get_permalink($how_to_use_page->ID) : '#how-to-use';
+      ?>
+      <a href="<?php echo esc_url($how_to_use_url); ?>" style="display:inline-block; background:rgba(255,255,255,0.2); color:#fff; padding:12px 30px; border-radius:30px; text-decoration:none; font-weight:bold; border:2px solid #fff; transition:all 0.3s;">
         使い方ガイド
       </a>
     </div>
@@ -71,7 +75,11 @@ get_header();
             <li>よくある質問（FAQ）</li>
           </ul>
         </div>
-        <a href="<?php echo home_url('/how-to-use'); ?>" style="display:inline-block; background:#667eea; color:#fff; padding:10px 20px; border-radius:5px; text-decoration:none; font-size:14px; transition:all 0.3s;">
+        <?php 
+          $how_to_use_page = get_page_by_path('how-to-use');
+          $how_to_use_url = $how_to_use_page ? get_permalink($how_to_use_page->ID) : '#';
+        ?>
+        <a href="<?php echo esc_url($how_to_use_url); ?>" style="display:inline-block; background:#667eea; color:#fff; padding:10px 20px; border-radius:5px; text-decoration:none; font-size:14px; transition:all 0.3s;">
           詳しく見る
         </a>
       </div>
@@ -92,7 +100,11 @@ get_header();
             <li>個人情報の不正取得</li>
           </ul>
         </div>
-        <a href="<?php echo home_url('/guidelines'); ?>" style="display:inline-block; background:#f39c12; color:#fff; padding:10px 20px; border-radius:5px; text-decoration:none; font-size:14px; transition:all 0.3s;">
+        <?php 
+          $guidelines_page = get_page_by_path('guidelines');
+          $guidelines_url = $guidelines_page ? get_permalink($guidelines_page->ID) : '#';
+        ?>
+        <a href="<?php echo esc_url($guidelines_url); ?>" style="display:inline-block; background:#f39c12; color:#fff; padding:10px 20px; border-radius:5px; text-decoration:none; font-size:14px; transition:all 0.3s;">
           詳しく見る
         </a>
       </div>
@@ -230,7 +242,11 @@ get_header();
       当サイトを利用して実際に神待ち女性と出会えた方々の声をご紹介します。<br>
       リアルな体験談から、安心・安全な出会い方のヒントを見つけてください。
     </p>
-    <a href="<?php echo home_url('/voice'); ?>" style="display:inline-block; background:#667eea; color:#fff; padding:12px 30px; border-radius:30px; text-decoration:none; font-weight:bold; transition:all 0.3s;">
+    <?php 
+      $voice_page = get_page_by_path('voice');
+      $voice_url = $voice_page ? get_permalink($voice_page->ID) : '#';
+    ?>
+    <a href="<?php echo esc_url($voice_url); ?>" style="display:inline-block; background:#667eea; color:#fff; padding:12px 30px; border-radius:30px; text-decoration:none; font-weight:bold; transition:all 0.3s;">
       体験談を読む
     </a>
   </section>
