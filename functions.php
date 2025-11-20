@@ -409,63 +409,45 @@ function optimize_title_tag($title) {
 }
 add_filter('pre_get_document_title', 'optimize_title_tag');
 
-// カスタムリライトルールの追加（固定ページ不要）
-function add_custom_rewrite_rules() {
-  // 使い方ガイドページ
-  add_rewrite_rule('^how-to-use/?$', 'index.php?custom_page=how-to-use', 'top');
+// 固定ページの自動作成（テーマ有効化時）
+function create_custom_pages() {
+  $pages = [
+    [
+      'title' => '使い方ガイド',
+      'slug' => 'how-to-use',
+      'template' => 'page-how-to-use.php'
+    ],
+    [
+      'title' => 'ガイドライン',
+      'slug' => 'guidelines',
+      'template' => 'page-guidelines.php'
+    ],
+    [
+      'title' => 'ユーザーボイス',
+      'slug' => 'voice',
+      'template' => 'page-voice.php'
+    ]
+  ];
   
-  // ガイドラインページ
-  add_rewrite_rule('^guidelines/?$', 'index.php?custom_page=guidelines', 'top');
-  
-  // ユーザーボイスページ
-  add_rewrite_rule('^voice/?$', 'index.php?custom_page=voice', 'top');
-}
-add_action('init', 'add_custom_rewrite_rules');
-
-// カスタムクエリ変数の追加
-function add_custom_query_vars($vars) {
-  $vars[] = 'custom_page';
-  return $vars;
-}
-add_filter('query_vars', 'add_custom_query_vars');
-
-// カスタムテンプレートの読み込み
-function load_custom_page_template($template) {
-  $custom_page = get_query_var('custom_page');
-  
-  if ($custom_page) {
-    $custom_template = null;
+  foreach ($pages as $page_data) {
+    // ページが既に存在するかチェック
+    $page = get_page_by_path($page_data['slug']);
     
-    switch ($custom_page) {
-      case 'how-to-use':
-        $custom_template = locate_template('page-how-to-use.php');
-        break;
-      case 'guidelines':
-        $custom_template = locate_template('page-guidelines.php');
-        break;
-      case 'voice':
-        $custom_template = locate_template('page-voice.php');
-        break;
-    }
-    
-    if ($custom_template) {
-      return $custom_template;
+    if (!$page) {
+      // ページを作成
+      $page_id = wp_insert_post([
+        'post_title' => $page_data['title'],
+        'post_name' => $page_data['slug'],
+        'post_status' => 'publish',
+        'post_type' => 'page',
+        'post_content' => '' // コンテンツは空（テンプレートで表示）
+      ]);
+      
+      // ページテンプレートを設定
+      if ($page_id && !is_wp_error($page_id)) {
+        update_post_meta($page_id, '_wp_page_template', $page_data['template']);
+      }
     }
   }
-  
-  return $template;
 }
-add_filter('template_include', 'load_custom_page_template');
-
-// リライトルールをフラッシュする関数（テーマ有効化時に実行）
-function flush_custom_rewrite_rules() {
-  add_custom_rewrite_rules();
-  flush_rewrite_rules();
-}
-register_activation_hook(__FILE__, 'flush_custom_rewrite_rules');
-
-// テーマ切り替え時にもリライトルールをフラッシュ
-function flush_rewrite_on_theme_switch() {
-  flush_rewrite_rules();
-}
-add_action('after_switch_theme', 'flush_rewrite_on_theme_switch');
+add_action('after_switch_theme', 'create_custom_pages');
