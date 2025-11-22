@@ -38,7 +38,7 @@
 
     <!-- コピーライト -->
     <div style="border-top:1px solid #555; padding-top:20px; text-align:center; color:#999; font-size:14px;">
-      <p>&copy; <?php echo date('Y'); ?> <?php bloginfo('name'); ?> - InfinityDesign. All rights reserved.</p>
+      <p>&copy; <?php echo date('Y'); ?> <?php bloginfo('name'); ?>. All rights reserved.</p>
     </div>
   </div>
 </footer>
