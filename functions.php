@@ -426,6 +426,16 @@ function create_custom_pages() {
       'title' => 'ユーザーボイス',
       'slug' => 'voice',
       'template' => 'page-voice.php'
+    ],
+    [
+      'title' => 'プライバシーポリシー',
+      'slug' => 'privacy',
+      'template' => 'page-privacy.php'
+    ],
+    [
+      'title' => '利用規約',
+      'slug' => 'terms',
+      'template' => 'page-terms.php'
     ]
   ];
   
