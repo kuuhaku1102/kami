@@ -20,7 +20,8 @@ $prefecture_name = $term->name;
   <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:20px; margin-bottom:40px;">
     <?php
       $random_count = rand(6, 10);
-      $import_girls = get_kami_import_data($random_count, true);
+      // 第3引数: クールダウン時間（分）、デフォルト30分
+      $import_girls = get_kami_import_data($random_count, true, 30);
 
       if (!empty($import_girls)) :
         foreach ($import_girls as $g) :

@@ -191,7 +191,7 @@ function save_girl_meta($post_id) {
 add_action('save_post_kamimachi_girl', 'save_girl_meta');
 
 // 既存のDB接続関数（互換性維持）
-function get_kami_import_data($limit = 50, $random = false) {
+function get_kami_import_data($limit = 50, $random = false, $cooldown_minutes = 30) {
   $log_path = WP_CONTENT_DIR . '/debug.log';
   file_put_contents($log_path, "=== DB接続テスト開始 ===\n", FILE_APPEND);
 
@@ -205,22 +205,94 @@ function get_kami_import_data($limit = 50, $random = false) {
   $conn->set_charset('utf8mb4');
 
   $limit = intval($limit);
-  $order_clause = $random ? ' ORDER BY RAND()' : ' ORDER BY name DESC';
-
-  // :white_check_mark: prefecture を削除した構文
-  $sql = "SELECT name, age, figure, `character`, `comment`, samune, url
-          FROM `jqabp_6e7f3y4v`.`wp_kami_import`" . $order_clause . " LIMIT ?";
-
-  if ($stmt = $conn->prepare($sql)) {
-    $stmt->bind_param('i', $limit);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
+  $table = '`jqabp_6e7f3y4v`.`wp_kami_import`';
+  
+  // ランダム表示が有効な場合のみクッキーロジックを適用
+  if ($random) {
+    $cookie_name = 'kami_profile_ids_' . md5($limit);
+    $cookie_data = isset($_COOKIE[$cookie_name]) ? json_decode(stripslashes($_COOKIE[$cookie_name]), true) : null;
+    
+    $use_cached = false;
+    if ($cookie_data && isset($cookie_data['ids']) && isset($cookie_data['timestamp'])) {
+      $elapsed = time() - $cookie_data['timestamp'];
+      if ($elapsed < ($cooldown_minutes * 60)) {
+        // クールダウン期間中：キャッシュされたIDリストを使用
+        $use_cached = true;
+        $id_list = $cookie_data['ids'];
+        file_put_contents($log_path, ":clock: クールダウン期間中 (経過: {$elapsed}秒)\n", FILE_APPEND);
+      } else {
+        file_put_contents($log_path, ":arrows_counterclockwise: クールダウン期間経過 (経過: {$elapsed}秒)\n", FILE_APPEND);
+      }
+    }
+    
+    if (!$use_cached) {
+      // 初回アクセスまたはクールダウン期間経過：新しいランダムIDリストを取得
+      $id_sql = "SELECT id FROM {$table} ORDER BY RAND() LIMIT ?";
+      if ($id_stmt = $conn->prepare($id_sql)) {
+        $id_stmt->bind_param('i', $limit);
+        $id_stmt->execute();
+        $id_result = $id_stmt->get_result();
+        $id_list = [];
+        while ($id_row = $id_result->fetch_assoc()) {
+          $id_list[] = intval($id_row['id']);
+        }
+        $id_stmt->close();
+        
+        // クッキーに保存
+        $cookie_value = json_encode([
+          'ids' => $id_list,
+          'timestamp' => time()
+        ]);
+        setcookie($cookie_name, $cookie_value, time() + ($cooldown_minutes * 60), '/', '', false, true);
+        file_put_contents($log_path, ":cookie: 新しいIDリストをクッキーに保存: " . implode(',', $id_list) . "\n", FILE_APPEND);
+      } else {
+        file_put_contents($log_path, ":warning: ID取得SQL準備失敗: {$conn->error}\n", FILE_APPEND);
+        $id_list = [];
+      }
+    }
+    
+    // IDリストが空の場合は通常のランダム取得にフォールバック
+    if (empty($id_list)) {
+      $sql = "SELECT name, age, figure, `character`, `comment`, samune, url FROM {$table} ORDER BY RAND() LIMIT ?";
+      if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param('i', $limit);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
+      } else {
+        $result = null;
+      }
+    } else {
+      // IDリストを使用してORDER BY FIELDで順序を保持
+      $id_placeholders = implode(',', array_fill(0, count($id_list), '?'));
+      $field_order = implode(',', $id_list);
+      $sql = "SELECT name, age, figure, `character`, `comment`, samune, url 
+              FROM {$table} 
+              WHERE id IN ({$id_placeholders}) 
+              ORDER BY FIELD(id, {$field_order})";
+      
+      if ($stmt = $conn->prepare($sql)) {
+        $types = str_repeat('i', count($id_list));
+        $stmt->bind_param($types, ...$id_list);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
+      } else {
+        file_put_contents($log_path, ":warning: データ取得SQL準備失敗: {$conn->error}\n", FILE_APPEND);
+        $result = null;
+      }
+    }
   } else {
-    file_put_contents($log_path, ":warning: SQL準備失敗: {$conn->error}\n", FILE_APPEND);
-    $fallback_sql = "SELECT name, age, figure, `character`, `comment`, samune, url
-                     FROM `jqabp_6e7f3y4v`.`wp_kami_import`" . $order_clause . " LIMIT {$limit}";
-    $result = $conn->query($fallback_sql);
+    // ランダム表示が無効な場合は通常の順序
+    $sql = "SELECT name, age, figure, `character`, `comment`, samune, url FROM {$table} ORDER BY name DESC LIMIT ?";
+    if ($stmt = $conn->prepare($sql)) {
+      $stmt->bind_param('i', $limit);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $stmt->close();
+    } else {
+      $result = null;
+    }
   }
 
   $data = [];
@@ -230,7 +302,7 @@ function get_kami_import_data($limit = 50, $random = false) {
     }
     file_put_contents($log_path, ":white_check_mark: 取得件数: " . count($data) . "\n", FILE_APPEND);
   } else {
-    file_put_contents($log_path, ":warning: SQLエラー: {$conn->error}\n", FILE_APPEND);
+    file_put_contents($log_path, ":warning: データ取得失敗\n", FILE_APPEND);
   }
 
   $conn->close();
