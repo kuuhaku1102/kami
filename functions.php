@@ -191,7 +191,7 @@ function save_girl_meta($post_id) {
 add_action('save_post_kamimachi_girl', 'save_girl_meta');
 
 // 既存のDB接続関数（互換性維持）
-function get_kami_import_data($limit = 50, $random = false, $cooldown_minutes = 30) {
+function get_kami_import_data($limit = 50, $random = false, $cooldown_seconds = 30) {
   $log_path = WP_CONTENT_DIR . '/debug.log';
   file_put_contents($log_path, "=== DB接続テスト開始 ===\n", FILE_APPEND);
 
@@ -215,7 +215,7 @@ function get_kami_import_data($limit = 50, $random = false, $cooldown_minutes = 
     $use_cached = false;
     if ($cookie_data && isset($cookie_data['ids']) && isset($cookie_data['timestamp'])) {
       $elapsed = time() - $cookie_data['timestamp'];
-      if ($elapsed < ($cooldown_minutes * 60)) {
+      if ($elapsed < $cooldown_seconds) {
         // クールダウン期間中：キャッシュされたIDリストを使用
         $use_cached = true;
         $id_list = $cookie_data['ids'];
@@ -243,7 +243,7 @@ function get_kami_import_data($limit = 50, $random = false, $cooldown_minutes = 
           'ids' => $id_list,
           'timestamp' => time()
         ]);
-        setcookie($cookie_name, $cookie_value, time() + ($cooldown_minutes * 60), '/', '', false, true);
+        setcookie($cookie_name, $cookie_value, time() + $cooldown_seconds, '/', '', false, true);
         file_put_contents($log_path, ":cookie: 新しいIDリストをクッキーに保存: " . implode(',', $id_list) . "\n", FILE_APPEND);
       } else {
         file_put_contents($log_path, ":warning: ID取得SQL準備失敗: {$conn->error}\n", FILE_APPEND);
