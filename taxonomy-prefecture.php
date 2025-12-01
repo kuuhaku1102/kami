@@ -20,7 +20,7 @@ $prefecture_name = $term->name;
   <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:20px; margin-bottom:40px;">
     <?php
       $random_count = rand(6, 10);
-      $import_girls = get_kami_import_data($random_count, $prefecture_name, true);
+      $import_girls = get_kami_import_data($random_count, true);
 
       if (!empty($import_girls)) :
         foreach ($import_girls as $g) :
